@@ -1,15 +1,24 @@
+import sys
 
 from clarifai.rest import ClarifaiApp
 app = ClarifaiApp("I21ANNJwBGJ5B8HQB6mQlniZkXcsvDZxdQVrlMGR", "EqHmd5dvNsVB1HL6r5lTsrGhv0QvFNv_tm13Cfgj") #entering account details
 
 
+keyword = str(sys.argv[1:])
+print(keyword)
+keyword = keyword.replace("[", "")
+keyword = keyword.replace("]", "")
+keyword = keyword.replace("'", "")
 
 # get the general model                                                            
 model = app.models.get("general-v1.3")
 # predict with the model
-model.predict_by_url(url='https://samples.clarifai.com/metro-north.jpg')
+# model.predict_by_url(url='https://samples.clarifai.com/metro-north.jpg')
 
-response = model.predict_by_url(url='https://samples.clarifai.com/metro-north.jpg') #assigning output to a variable
+# response = model.predict_by_url(url='https://samples.clarifai.com/metro-north.jpg') #assigning output to a variable
+response = model.predict_by_url(url=keyword) #assigning output to a variable
+
+
 
 # pprint.pprint(response)
 
@@ -27,7 +36,7 @@ words_vals={} #making new dictionary for storing names and corresponding values
 
 for a in filter4:
     words_vals[a["name"]] = a["value"] #assigning values to names and filling new dictionary
-    ## Now we have a dictionary of keywords and their probabilities associated with the. This is useful to us.
+## Now we have a dictionary of keywords and their probabilities associated with the. This is useful to us.
 
 # pprint.pprint(words_vals)
 

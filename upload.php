@@ -55,6 +55,22 @@ if (isset($_FILES['fileToUpload']))
     } else {
         if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
 
+
+
+            //process clarifai
+
+            // $file = 'https://samples.clarifai.com/metro-north.jpg';
+            $NGROK = 'http://4240e313.ngrok.io/photoapp';
+            $file = $NGROK . '/' . $target_dir . $filename;
+            // $str = `python clarifai1.py $file`;
+            $JSONstr = exec('python clarifai1.py ' . $file );
+            // echo $file;
+            // echo "CLARIFAI";
+            // echo $str;
+
+
+
+
             
             // echo "The file ". basename( $_FILES["fileToUpload"]["name"]). " has been uploaded.";
                     echo "The file ". $filename . " has been uploaded.";    
@@ -73,10 +89,18 @@ if (isset($_FILES['fileToUpload']))
 
             $conn->close();
 
+
+
+
+
         } else {
             echo "Sorry, there was an error uploading your file.";
         }
     }
+
+
+    
+
 
 }
 
@@ -247,6 +271,12 @@ if (isset($username)) {
                     <li>Consectetur</li>
                     <li>Adipiscing Elit</li>
                 </ul>
+
+
+                <?php 
+                    if (isset($JSONstr))
+                        echo $JSONstr;
+                ?>
                 
                 
               

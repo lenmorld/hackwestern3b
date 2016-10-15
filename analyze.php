@@ -1,13 +1,10 @@
 <?php
+// echo $_SERVER['PHP_SELF'];
+// echo $_SERVER["SERVER_ADDR"];
+// echo $_SERVER["DOCUMENT_ROOT"];
+$file = 'https://samples.clarifai.com/metro-north.jpg';
 
-// $str = exec('python ./clarifai.py ' . $query );
-$str = exec('python ./clarifai1.py ');
-
+// $str = `python clarifai1.py $file`;
+$str = exec('python clarifai1.py ' . $file);
 echo $str;
-
-// $command = escapeshellcmd('./clarifai1.py');
-// $output = shell_exec($command);
-// echo $output;
 ?>
-
-
