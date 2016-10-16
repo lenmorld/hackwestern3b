@@ -3,18 +3,52 @@
 
 print_r($_POST);
 print_r($_FILES);
+
 $username = 'Lenny';
 
 include('dbconnect.php');
+
+// // user chose keyword
+// if (isset($_POST['chosen_keyword'])) {
+
+//     foreach ($_POST as $key => $value) {
+//         if ($key == "_x_" ) {
+
+//         }
+//     }
+
+//     $filename1 = $_POST[''];
+
+//     $conn = setUpConnection();
+//     // save to DB
+
+//     $sql = "UPDATE photos
+//             SET category='". $_POST['chosen_keyword']  ."'
+//             WHERE photo = '" . $filename1 ."' ";
+
+//             // VALUES ('" . $filename ."','". $username ."')";
+
+//     if ($conn->query($sql) === TRUE) {
+//         echo "New record created successfully";
+//     } else {
+//         echo "Error: " . $sql . "<br>" . $conn->error;
+//     }
+
+//     $conn->close();
+// }
 
 // when uploading files
 if (isset($_FILES['files']))
 {
     $target_dir = "uploads/";
-    $JSONstrArray = array();
-    foreach ($_FILES['files']['name'] as $f => $name) {
+    $filenameArray = array();
+    //$JSONstrArray = array();
+    
+    foreach ($_FILES['files']['name'] as $f => $name) 
+    {
 
         $filename = basename($name);
+
         $target_file = $target_dir . $filename;
 
         $uploadOk = 1;
@@ -55,7 +89,7 @@ if (isset($_FILES['files']))
         // if everything is ok, try to upload file
         } else {
             if (move_uploaded_file($_FILES["files"]["tmp_name"][$f], $target_file)) {
-
+                echo "The file ". $filename . " has been uploaded."; 
                 //process clarifai
 
                 // $file = 'https://samples.clarifai.com/metro-north.jpg';
@@ -63,30 +97,101 @@ if (isset($_FILES['files']))
                 $file = $NGROK . '/' . $target_file;
                 // $str = `python clarifai1.py $file`;
                  
-                array_push($JSONstrArray, exec('python clarifai1.py ' . $file ));
+                // array_push($JSONstrArray, exec('python clarifai1.py ' . $file ));
 
+                $JSONstr1 = exec('python clarifai1.py ' . $file );
+                $filenameArray[$filename] = $JSONstr1;
+                $keywords = explode(",", $JSONstr1);
+                $term = array();
+                
+                foreach ($keywords as $value) {     // for every image
+                    $pieces = explode(":", $value);
+                    $keyword = $pieces[0];
+                    $keyword = str_replace(" u'", "'", $keyword);
+                    $keyword = str_replace("u'", "'", $keyword);
+                    $keyword = str_replace("'", "", $keyword);
+                    $keyword = str_replace("{", "", $keyword);
+                    $accuracy = $pieces[1];
+                    $term[$keyword] = $accuracy;
+                    $final_keywords = array(); 
+                    
+                    $keywords_string = "";
+                    foreach ($term as $key => $value) {     // for every keyword
+                        if (floatval($accuracy)>0.97)      // if higher than .97 accuracy, include this
+                        {
+                            array_push($final_keywords, $key);
+                            // echo "<input type='radio' name='" . "_x_" . $filename . "' class='btn btn-default' value=" . $key  .">" . $key;
+                            $keywords_string += $key . ',';
 
-                echo "processing" . $file;
+                            //check keyword if exists, add if doesnt
+                            $conn2 = setUpConnection();
+                            $sql2 = "SELECT tally FROM keywords
+                                    WHERE keyword='" . $key ."'";
+                            $result2 = $conn2->query($sql2);
+
+                            if ($result2->num_rows == 1) {      // keyword already in the database, just add to tally
+                                $row2 = $result2->fetch_assoc();
+                                $tally = $row2["tally"];
+                                echo "keyword in DB, just add";
+                                $conn = setUpConnection();
+                                //save keyword starting with tally 1
+                                $sql = "INSERT INTO keywords(keyword, tally)
+                                        VALUES ('" . $key ."', ". $tally . ")";
+
+                                if ($conn->query($sql) === TRUE) {
+                                    echo  $key . " keyword successfully";
+                                } else {
+                                    echo "Error: " . $sql . "<br>" . $conn->error;
+                                }   
+                                 $conn->close();  
+                            } else {
+                                echo "keyword not yet in DB";
+                                $conn = setUpConnection();
+                                //save keyword starting with tally 1
+                                $sql = "INSERT INTO keywords(keyword, tally)
+                                        VALUES ('" . $key ."',". 1 . ")";
+
+                                if ($conn->query($sql) === TRUE) {
+                                    echo  $key . " keyword successfully";
+                                } else {
+                                    echo "Error: " . $sql . "<br>" . $conn->error;
+                                }   
+                                 $conn->close();  
+                            }
+                            $conn2->close();  
+                        }
+                    }
+                }   // end for every image
+                $conn3 = setUpConnection();
+                //save image with top keywords, saved as a string
+                $sql3 = "INSERT INTO photos(photo, username, category)
+                        VALUES ('" . $filename ."','". $username ."','" . $keywords_string . "')";
+                echo $sql3;
+                if ($conn3->query($sql3) === TRUE) {
+                    echo "New photo added to DB successfully";
+                } else {
+                    echo "Error: " . $sql3 . "<br>" . $conn->error;
+                }
+                $conn3->close();
+                //print_r($term);
+
+                // //do analysis of the keywords
+                // foreach ($term as $key => $value) {
+                //     if (floatval($value)>0.97)      // if higher than .97 accuracy, include this
+                //     {
+                //         array_push($final_keywords, $key);
+                //         echo "<input type='radio' name='" . "_x_" . $filename . "' class='btn btn-default' value=" . $key  .">" . $key;
+                //     }
+                // }
+                // $filename_keywords_pair[$filen] = $final_keywords;    
+
+                // echo "processing" . $file;
                 // echo "CLARIFAI";
                 // echo $str;
 
-                
                 // echo "The file ". basename( $_FILES["fileToUpload"]["name"]). " has been uploaded.";
-               echo "The file ". $filename . " has been uploaded.";    
-
-                $conn = setUpConnection();
+                // $conn = setUpConnection();
                 // save to DB
-
-                $sql = "INSERT INTO photos(photo, username)
-                        VALUES ('" . $filename ."','". $username ."')";
-
-                if ($conn->query($sql) === TRUE) {
-                    echo "New record created successfully";
-                } else {
-                    echo "Error: " . $sql . "<br>" . $conn->error;
-                }
-
-                $conn->close();
 
             } else {
                 echo "Sorry, there was an error uploading your file.";
@@ -140,7 +245,6 @@ if (isset($username)) {
         }
         $conn->close();  
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -251,42 +355,78 @@ if (isset($username)) {
                 </ul>
 
                 <?php 
-                    if (isset($JSONstrArray)) {
 
-                        // echo $JSONstr;
-                        var_dump($JSONstrArray);
+                if (isset($filenameArray)) {
+                    print_r($filenameArray);
 
-                        $all_pics_keywords = array();
-                        $ctr = 0;
-
-                        foreach ($JSONstrArray as $JSONstr1) {
-                            $keywords = explode(",", $JSONstr1);
-                            $term = array();
-                            foreach ($keywords as $value) {
-                                $pieces = explode(":", $value);
-                                $keyword = $pieces[0];
-                                $keyword = str_replace(" u'", "'", $keyword);
-                                $keyword = str_replace("u'", "'", $keyword);
-                                $accuracy = $pieces[1];
-                                $term[$keyword] = $accuracy;   
-                            }
-                            print_r($term);
-
-
-                            $final_keywords = array();
-
-                            //do analysis of the keywords
-                            foreach ($term as $key => $value) {
-                                if (floatval($value)>0.97)      // if higher than .97 accuracy, include this
-                                {
-                                    array_push($final_keywords, $key);
+                    $filename_keywords_pair = array();
+                    foreach ($filenameArray as $filen => $JSONstr1) {
+                            echo "<div class='well'>";
+                            echo "<h3>" . $filen ."</h3>";
+                                $ctr = 0;
+                                $keywords = explode(",", $JSONstr1);
+                                $term = array();
+                                foreach ($keywords as $value) {
+                                    $pieces = explode(":", $value);
+                                    $keyword = $pieces[0];
+                                    $keyword = str_replace(" u'", "'", $keyword);
+                                    $keyword = str_replace("u'", "'", $keyword);
+                                    $accuracy = $pieces[1];
+                                    $term[$keyword] = $accuracy;   
                                 }
-                            }
+                                //print_r($term);
+                                $final_keywords = array();
 
-                            $all_pics_keywords[$ctr] = $final_keywords;
-                            $ctr += 1;
-                        }   //end for each term
+                                //do analysis of the keywords
+                                foreach ($term as $key => $value) {
+                                    if (floatval($value)>0.97)      // if higher than .97 accuracy, include this
+                                    {
+                                        array_push($final_keywords, $key);
+                                        echo "<input type='radio' name='" . "_x_" . $filename . "' class='btn btn-default' value=" . $key  .">" . $key;
+                                    }
+                                }
+                                $filename_keywords_pair[$filen] = $final_keywords;    
+                                
+                            // echo "</div>";            
                     }
+
+                }
+                    // if (isset($JSONstrArray)) {
+
+                    //     // echo $JSONstr;
+                    //     var_dump($JSONstrArray);
+
+                    //     $all_pics_keywords = array();
+                    //     $ctr = 0;
+
+                    //     foreach ($JSONstrArray as $JSONstr1) {
+                    //         $keywords = explode(",", $JSONstr1);
+                    //         $term = array();
+                    //         foreach ($keywords as $value) {
+                    //             $pieces = explode(":", $value);
+                    //             $keyword = $pieces[0];
+                    //             $keyword = str_replace(" u'", "'", $keyword);
+                    //             $keyword = str_replace("u'", "'", $keyword);
+                    //             $accuracy = $pieces[1];
+                    //             $term[$keyword] = $accuracy;   
+                    //         }
+                    //         print_r($term);
+
+
+                    //         $final_keywords = array();
+
+                    //         //do analysis of the keywords
+                    //         foreach ($term as $key => $value) {
+                    //             if (floatval($value)>0.97)      // if higher than .97 accuracy, include this
+                    //             {
+                    //                 array_push($final_keywords, $key);
+                    //             }
+                    //         }
+
+                    //         $all_pics_keywords[$ctr] = $final_keywords;
+                    //         $ctr += 1;
+                    //     }   //end for each term
+                    // }
 
                 ?>
  
@@ -294,19 +434,18 @@ if (isset($username)) {
 
         </div>
         <!-- /.row -->
-
         <!-- Related Projects Row -->
 
         <?php 
-            if (isset($all_pics_keywords)) {
-            foreach ($all_pics_keywords as $key => $value) {
+            // if (isset($all_pics_keywords)) {
+            // foreach ($all_pics_keywords as $key => $value) {
+
+            //     echo "<div class='well'>" . $key . "</div>"
                 
-                echo "<div class='well'>" . $key . print_r($value) . "</div>";
-            }
-        }
-
+            //     echo "<button class='btn btn'>" . $key . print_r($value) . "</button>";
+            // }
+        // }
         ?>
-
 
         <div class="row albums-C">
             <div class="col-lg-12">
@@ -315,7 +454,6 @@ if (isset($username)) {
             <h2>Family</h2>
             <?php 
                 // loop through categories displaying them
-
                 $folder = 'uploads/';
             foreach ($family as $f_photo) {
                     
