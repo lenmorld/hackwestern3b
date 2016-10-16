@@ -153,7 +153,9 @@ if (isset($_FILES['files']))
                 print_r($term);
                 foreach ($term as $key => $value) {
                     // echo "<input type='radio' name='" . "_x_" . $filename . "' class='btn btn-default' value=" . $key  .">" . $key;
-                    $keywords_string += $key . ',';
+                    $keywords_string .= ($key . ',');
+                    echo "KEYWORD:";
+                    echo $keywords_string;
 
                     //check keyword if exists, add if doesnt
                     $conn2 = setUpConnection();
