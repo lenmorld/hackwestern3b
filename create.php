@@ -1,3 +1,51 @@
+<?php 
+
+$username = 'Lenny';
+include('dbconnect.php');
+
+
+
+if (isset($_POST['categories']))
+{
+    print_r($_POST['categories']);
+
+    $categories = array();
+
+    foreach ($_POST['categories'] as $check) {
+        array_push($categories, $check);
+    }
+}
+else
+{
+    $conn2 = setUpConnection();
+    $sql2 = "SELECT * FROM keywords
+            ORDER BY tally DESC LIMIT 10";
+    // $sql2 = "SELECT * FROM keywords";
+    $result2 = $conn2->query($sql2);
+
+    print_r($result2);
+
+    $top_categories = array();
+
+    if ($result2->num_rows > 0) {
+         while($row = $result2->fetch_assoc()) {
+               array_push($top_categories, $row["keyword"]);
+        }
+    }
+    print_r($top_categories);
+    $conn2->close(); 
+
+}
+
+
+
+
+
+
+?>
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -69,80 +117,42 @@
     <div class="main-Container">
         <div>
             <h1>Sortify</h1>
-                        <h3>Albums for Everyone</h3>
-                      
-                        <ul class="list-inline intro-social-buttons">
-                            <li>
-                                <form action="#">
-                                            
-                                                <input type="text" name="username" placeholder="username" class="btn btn-default btn-lg">
-                
-                            </li>
-                            
-                            <li>
-                                <form action="#">
-                                <input type="password" name="password" placeholder="*******" class="btn btn-default btn-lg">
-                                </form>
-                                </li>
-                            <li>
-                                <a href="#" class="btn btn-default btn-lg"> <span class="network-name">Log in</span></a>
-                            </li>
-                        </ul>
-                        <p>Don't have an account? <a href="./links/signup.html"  id="g2"> Create One </a></p>
-            
+            <h3>Albums for Everyone</h3>
+
+            <form action="create.php" method="post">
+            <?php
+                if (isset($top_categories)) {
+
+                foreach ($top_categories as  $value) {
+                echo '
+                     <div class="checkbox">
+                      <label><input type="checkbox" name="categories[]" value="' . $value .'">' . $value .'</label>
+                    </div>
+                ';
+                }
+            }
+            ?>
+
+            <input type="submit" value="SUBMIT"/>
+
+            </form>
+        </div>
+
+        <div>
+        <?php 
+            if (isset($categories)) {
+                foreach ($categories as  $value) {
+                    echo "<button class='btn btn-primary'>" . $value . "<div>";
+                }
+            }
+        ?>
+
         </div>
 
            
                         
     </div>
-        <!-- /.container -->
-    <!-- /.intro-header -->
 
-    <!-- Page Content -->
-
-	<!-- <a  name="services"></a>
-    <div class="content-section-a">
-
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-5 col-sm-6">
-                    <hr class="section-heading-spacer">
-                    <div class="clearfix"></div>
-                    <h2 class="section-heading">Step 1 :<br>Upload your photos</h2>
-                    <p class="lead">Upload your photos and organize them the way you want. Choose from a list of keywords to sort it accordingly</p>
-                </div>
-                <div class="col-lg-5 col-lg-offset-2 col-sm-6">
-                    <img class="img-responsive" src="img/img1.jpg" alt="">
-                </div>
-            </div>
-
-        </div> -->
-        <!-- /.container -->
-
-  <!--   </div>
-  
-
-    <div class="content-section-b">
-
-        <div class="container">
-
-            <div class="row">
-                <div class="col-lg-5 col-lg-offset-1 col-sm-push-6  col-sm-6">
-                    <hr class="section-heading-spacer">
-                    <div class="clearfix"></div>
-                    <h2 class="section-heading">Step 2 : <br>Watch your photos being sort in just a snap</h2>
-                    <p class="lead">Choose from a list of keywords to make the album according to keyword</p>
-                </div>
-                <div class="col-lg-5 col-sm-pull-6  col-sm-6">
-                    <img class="img-responsive" src="img/img2.jpg" alt="">
-                </div>
-            </div>
-
-        </div>
-       
-
-    </div> -->
-   
 
 	<a  name="contact"></a>
 

@@ -1,0 +1,83 @@
+@charset "utf-8";
+/* CSS Document */
+
+html,body
+{
+	height:100%;
+	width:100%;
+	margin:0%;	
+	
+}
+
+/* Background Image of body */
+body
+{
+	font-family: 'Raleway', sans-serif;
+
+}
+
+.main-container{
+    background-color: #03A9F4;
+    background: url(http://cdn.pcwallart.com/images/highway-at-night-photography-wallpaper-3.jpg) no-repeat center center;
+    height: 100vh;
+    background-size: cover;
+    height: 100vh;
+    background-size: cover;
+    opacity: 0.75;
+}
+
+.sign-up-Container{
+	width: 30vw;
+	height: 40vh;
+	position: relative;
+	top: 50%;
+	transform: translateY(-50%);
+	background-color: black;
+	margin: auto;
+	text-align: center;
+	border-radius: 5px;
+	
+}
+
+.sign-up-Container h1{
+	color: white;
+}
+
+.form-Container{
+	position: relative;
+	top: 50%;
+	transform: translateY(-50%);
+
+}
+
+.form-Container input{
+	margin-top: 10px;
+	text-align: center;
+	border-radius: 3px;
+	border: 0;
+}
+
+
+ /* Header Styling starts here*/ 
+header
+{
+	width:100%;
+	height:8%;
+	background:url('../Images/555.jpg');
+}
+
+
+.copyright {
+	margin-bottom: 0;
+}
+
+footer {
+    padding-top: 1em;
+    background: black;
+    color: white;
+    text-align: center;
+}
+
+
+
+

@@ -5,7 +5,6 @@ print_r($_POST);
 print_r($_FILES);
 
 $username = 'Lenny';
-
 include('dbconnect.php');
 
 // // user chose keyword
@@ -44,7 +43,7 @@ if (isset($_FILES['files']))
     $filenameArray = array();
     //$JSONstrArray = array();
     
-    foreach ($_FILES['files']['name'] as $f => $name) 
+    foreach ($_FILES['files']['name'] as $f => $name)       // for each image
     {
 
         $filename = basename($name);
@@ -103,8 +102,9 @@ if (isset($_FILES['files']))
                 $filenameArray[$filename] = $JSONstr1;
                 $keywords = explode(",", $JSONstr1);
                 $term = array();
+                $final_keywords = array();
                 
-                foreach ($keywords as $value) {     // for every image
+                foreach ($keywords as $value) {     // for every keyword-package
                     $pieces = explode(":", $value);
                     $keyword = $pieces[0];
                     $keyword = str_replace(" u'", "'", $keyword);
@@ -112,68 +112,23 @@ if (isset($_FILES['files']))
                     $keyword = str_replace("'", "", $keyword);
                     $keyword = str_replace("{", "", $keyword);
                     $accuracy = $pieces[1];
-                    $term[$keyword] = $accuracy;
-                    $final_keywords = array(); 
-                    
-                    $keywords_string = "";
-                    foreach ($term as $key => $value) {     // for every keyword
-                        if (floatval($accuracy)>0.97)      // if higher than .97 accuracy, include this
-                        {
-                            array_push($final_keywords, $key);
-                            // echo "<input type='radio' name='" . "_x_" . $filename . "' class='btn btn-default' value=" . $key  .">" . $key;
-                            $keywords_string += $key . ',';
 
-                            //check keyword if exists, add if doesnt
-                            $conn2 = setUpConnection();
-                            $sql2 = "SELECT tally FROM keywords
-                                    WHERE keyword='" . $key ."'";
-                            $result2 = $conn2->query($sql2);
-
-                            if ($result2->num_rows == 1) {      // keyword already in the database, just add to tally
-                                $row2 = $result2->fetch_assoc();
-                                $tally = $row2["tally"];
-                                echo "keyword in DB, just add";
-                                $conn = setUpConnection();
-                                //save keyword starting with tally 1
-                                $sql = "INSERT INTO keywords(keyword, tally)
-                                        VALUES ('" . $key ."', ". $tally . ")";
-
-                                if ($conn->query($sql) === TRUE) {
-                                    echo  $key . " keyword successfully";
-                                } else {
-                                    echo "Error: " . $sql . "<br>" . $conn->error;
-                                }   
-                                 $conn->close();  
-                            } else {
-                                echo "keyword not yet in DB";
-                                $conn = setUpConnection();
-                                //save keyword starting with tally 1
-                                $sql = "INSERT INTO keywords(keyword, tally)
-                                        VALUES ('" . $key ."',". 1 . ")";
-
-                                if ($conn->query($sql) === TRUE) {
-                                    echo  $key . " keyword successfully";
-                                } else {
-                                    echo "Error: " . $sql . "<br>" . $conn->error;
-                                }   
-                                 $conn->close();  
-                            }
-                            $conn2->close();  
-                        }
+                    if (floatval($accuracy) > 0.97) {
+                         $term[$keyword] = $accuracy;     
                     }
+
+                    // $keywords_string = "";
+                    // // foreach ($term as $key => $value) {     // for every keyword
+                    // if (floatval($accuracy)> 0.97)      // if higher than .97 accuracy, include this
+                    // {
+                    //     $key = $keyword;
+                    //     array_push($final_keywords, $key);
+                    // }
+
+                    // }
                 }   // end for every image
-                $conn3 = setUpConnection();
-                //save image with top keywords, saved as a string
-                $sql3 = "INSERT INTO photos(photo, username, category)
-                        VALUES ('" . $filename ."','". $username ."','" . $keywords_string . "')";
-                echo $sql3;
-                if ($conn3->query($sql3) === TRUE) {
-                    echo "New photo added to DB successfully";
-                } else {
-                    echo "Error: " . $sql3 . "<br>" . $conn->error;
-                }
-                $conn3->close();
-                //print_r($term);
+
+
 
                 // //do analysis of the keywords
                 // foreach ($term as $key => $value) {
@@ -193,12 +148,70 @@ if (isset($_FILES['files']))
                 // $conn = setUpConnection();
                 // save to DB
 
+                $keywords_string = "";
+                echo "FINAL KEYWORDS:";
+                print_r($term);
+                foreach ($term as $key => $value) {
+                    // echo "<input type='radio' name='" . "_x_" . $filename . "' class='btn btn-default' value=" . $key  .">" . $key;
+                    $keywords_string += $key . ',';
+
+                    //check keyword if exists, add if doesnt
+                    $conn2 = setUpConnection();
+                    $sql2 = "SELECT tally FROM keywords
+                            WHERE keyword='" . $key ."'";
+                    $result2 = $conn2->query($sql2);
+
+                    if ($result2->num_rows == 1) {      // keyword already in the database, just add to tally
+                        $row2 = $result2->fetch_assoc();
+                        $tally = $row2["tally"];
+                        echo "keyword in DB, just add 1";
+                        $conn = setUpConnection();
+                        //save keyword starting with tally 1
+                        $sql = "UPDATE keywords SET tally=" . ($tally+1) . " WHERE keyword='" . $key . "' " ;
+
+                        if ($conn->query($sql) === TRUE) {
+                            echo  $key . " keyword successfully";
+                        } else {
+                            echo "Error: " . $sql . "<br>" . $conn->error;
+                        }   
+                         $conn->close();  
+                    } else {
+                        echo "keyword not yet in DB";
+                        $conn = setUpConnection();
+                        //save keyword starting with tally 1
+                        $sql = "INSERT INTO keywords(keyword, tally)
+                                VALUES ('" . $key ."',". 1 . ")";
+
+                        if ($conn->query($sql) === TRUE) {
+                            echo  $key . " keyword successfully";
+                        } else {
+                            echo "Error: " . $sql . "<br>" . $conn->error;
+                        }   
+                         $conn->close();  
+                    }
+                    $conn2->close(); 
+
+                } 
+
+                // print_r($final_keywords);
+                $conn3 = setUpConnection();
+                //save image with top keywords, saved as a string
+                $sql3 = "INSERT INTO photos(photo, username, category)
+                        VALUES ('" . $filename ."','". $username ."','" . $keywords_string . "')";
+                echo $sql3;
+                if ($conn3->query($sql3) === TRUE) {
+                    echo "New photo added to DB successfully";
+                } else {
+                    echo "Error: " . $sql3 . "<br>" . $conn->error;
+                }
+                $conn3->close();
+                //print_r($term);
+
             } else {
                 echo "Sorry, there was an error uploading your file.";
             }
         }
-    }
-
+    } // end for each image
 }
 
 
@@ -382,7 +395,7 @@ if (isset($username)) {
                                     if (floatval($value)>0.97)      // if higher than .97 accuracy, include this
                                     {
                                         array_push($final_keywords, $key);
-                                        echo "<input type='radio' name='" . "_x_" . $filename . "' class='btn btn-default' value=" . $key  .">" . $key;
+                                        // echo "<input type='radio' name='" . "_x_" . $filename . "' class='btn btn-default' value=" . $key  .">" . $key;
                                     }
                                 }
                                 $filename_keywords_pair[$filen] = $final_keywords;    
