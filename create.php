@@ -88,6 +88,9 @@ else
                     <li>
                         <a href="links/about.php">About</a>
                     </li>
+                    <li>
+                        <a href="create.php">Create</a>
+                    </li>
 <!--                     <li>
                         <a href="#">Contact</a>
                     </li> -->
@@ -103,10 +106,12 @@ else
 
     <!-- Header -->
     <a name="about"></a>
+    <!-- <hr /> -->
     <div class="main-Container">
         <div>
             <h1>Sortify</h1>
             <h3>Albums for Everyone</h3>
+            <hr/>
             
             <?php
                 if (isset($top_categories)) {
@@ -115,11 +120,11 @@ else
                 foreach ($top_categories as  $value) {
                 echo '
                      <div class="checkbox">
-                      <label><input type="checkbox" name="categories[]" value="' . $value .'">' . $value .'</label>
+                      <label><strong><input type="checkbox" name="categories[]" value="' . $value .'">' . $value .'</strong></label>
                     </div>
                 ';
                 }
-                echo '<input type="submit" value="SUBMIT"/>
+                echo '<input type="submit" value="CREATE ALBUM" class="btn btn-success"/>
                 </form>';
             }
             if (isset($categories)) {
@@ -165,14 +170,16 @@ else
 
 
                 foreach ($tag_images as $tag => $pic_set) {
+                    // echo "<hr/>";
+                    echo "<div>";
                     echo "<h3>" . $tag ."</h3>";
                     foreach ($pic_set as  $pic) {
-                        echo "<img src=./uploads/" . $pic ." width='300px'>";
+                        echo "<img src=./uploads/" . $pic ." width='100px'>";
                     }
                    // $filename = 'uploads\' . $pic;
 
                     
-                    
+                    echo "</div>";
                 }   
             }
             ?>
@@ -191,7 +198,7 @@ else
 
     <!-- Footer -->
     <footer>
-        <div class="container">      
+<!--         <div class="container">      
                     <ul class="list-inline">
                         <li>
                             <a href="index.html">Home</a>
@@ -209,7 +216,7 @@ else
                     <p class="copyright text-muted small">Copyright &copy; Sortify 2016. All Rights Reserved</p>
                 
             
-        </div>
+        </div> -->
     </footer>
 
     <!-- jQuery -->

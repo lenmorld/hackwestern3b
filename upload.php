@@ -1,6 +1,6 @@
 
 <?php
-
+error_reporting(E_ERROR | E_PARSE);
 // print_r($_POST);
 // print_r($_FILES);
 
@@ -322,12 +322,12 @@ if (isset($username)) {
                 <?php 
 
                 if (isset($filenameArray)) {
-                    echo "<h4>RAW KEYWORDS</h4>";
+                    // echo "<h4>RAW KEYWORDS</h4>";
                     // print_r($filenameArray); //UNCOMMENT THIS
 
                     $filename_keywords_pair = array();
                     foreach ($filenameArray as $filen => $JSONstr1) {
-                            echo "<div class='well'>";
+                            echo "<div class='well'>successfully uploaded <br/>";
                             echo "<h3>" . $filen ."</h3>";
                                 $ctr = 0;
                                 $keywords = explode(",", $JSONstr1);
@@ -353,7 +353,7 @@ if (isset($username)) {
                                 }
                                 $filename_keywords_pair[$filen] = $final_keywords;    
                                 
-                            // echo "</div>";            
+                            echo "</div>";            
                     }
 
                 }
