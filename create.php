@@ -4,47 +4,34 @@ $username = 'Lenny';
 include('dbconnect.php');
 
 
-
 if (isset($_POST['categories']))
 {
-    print_r($_POST['categories']);
-
+    // print_r($_POST['categories']);
     $categories = array();
-
     foreach ($_POST['categories'] as $check) {
         array_push($categories, $check);
     }
 }
 else
 {
+    $top_categories = array();
     $conn2 = setUpConnection();
     $sql2 = "SELECT * FROM keywords
             ORDER BY tally DESC LIMIT 10";
     // $sql2 = "SELECT * FROM keywords";
     $result2 = $conn2->query($sql2);
 
-    print_r($result2);
-
-    $top_categories = array();
+    print_r($result2); 
 
     if ($result2->num_rows > 0) {
          while($row = $result2->fetch_assoc()) {
                array_push($top_categories, $row["keyword"]);
         }
     }
-    print_r($top_categories);
+    // print_r($top_categories);
     $conn2->close(); 
-
 }
-
-
-
-
-
-
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -111,18 +98,17 @@ else
         <!-- /.container -->
     </nav>
 
-
     <!-- Header -->
     <a name="about"></a>
     <div class="main-Container">
         <div>
             <h1>Sortify</h1>
             <h3>Albums for Everyone</h3>
-
-            <form action="create.php" method="post">
+            
             <?php
                 if (isset($top_categories)) {
 
+                echo '<form action="create.php" method="post">';
                 foreach ($top_categories as  $value) {
                 echo '
                      <div class="checkbox">
@@ -130,14 +116,47 @@ else
                     </div>
                 ';
                 }
+                echo '<input type="submit" value="SUBMIT"/>
+                </form>';
+            }
+            if (isset($categories)) {
+
+                $conn2 = setUpConnection();
+                $sql2 = "SELECT category, photo FROM photos
+                         WHERE username='" . $username . "' ";
+                // $sql2 = "SELECT * FROM keywords";
+                $result2 = $conn2->query($sql2);
+                // print_r($result2);
+                $images1 = array();
+                if ($result2->num_rows > 0) {
+                     while($row = $result2->fetch_assoc()) {
+                            foreach ($categories as  $value2) {
+                                if (strpos($row["category"],  $value2)  ) {
+                                        $photo = $row["photo"] ;
+                                        $tags = $row["category"];
+                                        $images1[$value2] = $photo;
+                                        // array_push($images1, $value2 );
+                                }    
+                            }
+                           // $keyword1= $row["keyword"] ;
+                           // $tags = $row["categories"];
+                           // $images1[$keyword1] = $tags;
+                    }
+                }
+                // print_r($top_categories);
+                $conn2->close(); 
+
+
+                foreach ($images1 as $tag => $pic) {
+                    $filename = 'uploads/' . $pic;
+
+                    echo "<h3>" . $tag ."</h3>";
+                    echo "<img src='C:\\xampp3\\htdocs\\PhotoApp\\uploads\\'>" . $filename . "'>";
+                }   
             }
             ?>
 
-            <input type="submit" value="SUBMIT"/>
-
-            </form>
         </div>
-
         <div>
         <?php 
             if (isset($categories)) {
@@ -146,24 +165,15 @@ else
                 }
             }
         ?>
-
-        </div>
-
-           
-                        
+        </div>              
     </div>
-
-
 	<a  name="contact"></a>
 
     <!-- Footer -->
     <footer>
-        <div class="container">
-            
-                
+        <div class="container">      
                     <ul class="list-inline">
                         <li>
-
                             <a href="index.html">Home</a>
                         </li>
                         <li class="footer-menu-divider">&sdot;</li>
