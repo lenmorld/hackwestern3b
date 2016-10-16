@@ -148,14 +148,13 @@ else
 
 
                 foreach ($images1 as $tag => $pic) {
-                    $filename = 'uploads/' . $pic;
+                   // $filename = 'uploads\' . $pic;
 
                     echo "<h3>" . $tag ."</h3>";
-                    echo "<img src='C:\\xampp3\\htdocs\\PhotoApp\\uploads\\'>" . $filename . "'>";
+                    echo "<img src=./uploads/" . $pic ." width='300px'>";
                 }   
             }
             ?>
-
         </div>
         <div>
         <?php 
