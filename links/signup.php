@@ -1,3 +1,53 @@
+<?php
+
+include('../dbconnect.php');
+print_r($_POST);
+
+if (isset($_POST['submit']))
+{
+    $errormessage = "";
+
+     if (isset($_POST['username']) && isset($_POST['password']) && isset($_POST['firstname']) && isset($_POST['lastname']))
+    {
+        $username = $_POST['username'];
+        $password = $_POST['password'];
+        $firstname = $_POST['firstname'];
+        $lastname = $_POST['lastname'];
+        
+        $conn = setUpConnection();
+
+        $sql = "SELECT username, password FROM users
+                WHERE username='" . $username ."' AND
+                        password='" .  $password . "' ";
+
+        $result = $conn->query($sql);
+
+        if ($result->num_rows > 0) {            // user already exist, deny
+            //header("Location: upload.php");
+            $errormessage = "username|password already exist";
+        } else {                // continue to add the user
+
+            $conn = setUpConnection();
+            //save keyword starting with tally 1
+            $sql = "INSERT INTO users(username, password, firstname, lastname)
+                    VALUES ('" . $username . "', '" . $password . "', '" . $firstname . "', '" . $lastname . "' )";
+
+            if ($conn->query($sql) === TRUE) {
+                echo   " user added successfully";
+                $errormessage = "user added successfully";
+            } else {
+                echo "Error: " . $sql . "<br>" . $conn->error;
+            }   
+             $conn->close();  
+        }
+        $conn->close();        
+    } 
+}
+
+
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -52,11 +102,11 @@
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav navbar-right">
                     <li>
-                        <a href="#">About</a>
+                        <a href="links/about.php">About</a>
                     </li>
-                    <li>
+<!--                     <li>
                         <a href="#">Contact</a>
-                    </li>
+                    </li> -->
                 </ul>
             </div>
             <!-- /.navbar-collapse -->
@@ -79,15 +129,17 @@
 
     <div class="form-Container">
         <h1 class="">Create an account</h1>
-        <form>
-        <fieldset>
-        <input type="text" name="field1" placeholder="First Name" align="middle" id="firstName"><br>
-        <input type="text" name="field2" placeholder="Last Name" align="middle"><br>
-        <input type="password" name="field3" placeholder="Password" align="middle">
+        <h3><?php if (isset($errormessage)) echo $errormessage;?></h3>
+        <form method="post" action="signup.php">
+            <fieldset>
+            <input type="text" name="firstname" placeholder="First Name" align="middle" id="firstName"><br>
+            <input type="text" name="lastname" placeholder="Last Name" align="middle"><br>
+            <input type="text" name="username" placeholder="username" align="middle"><br>
+            <input type="password" name="pasword" placeholder="Password" align="middle">
 
-        </fieldset>
+            </fieldset>
 
-        <input type="submit" value="Sign Up" onclick="message()">
+            <input type="submit" value="Sign Up" name="submit" />
 
         </form>
 
@@ -103,10 +155,8 @@
 
     <!-- Footer -->
     <footer>
-        
                     <ul class="list-inline">
                         <li>
-
                             <a href="../index.html">Home</a>
                         </li>
                         <li class="footer-menu-divider">&sdot;</li>
@@ -116,9 +166,7 @@
                         <li class="footer-menu-divider">&sdot;</li>
                         <li>
                             <a href="../links/about.html#s2">About Us</a>
-                        </li>
-                        
-                        
+                        </li>     
                     </ul>
                     <p class="copyright text-muted small">Copyright &copy; Sort It! 2016. All Rights Reserved</p>
           

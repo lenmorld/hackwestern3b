@@ -8,7 +8,6 @@ $str = "{u'summer': 0.9006376, u'business': 0.76717526, u'family': 0.79327387, u
 $keywords = explode(",", $str);
 $term = array();
 
-
 foreach ($keywords as $value) {
 	$pieces = explode(":", $value);
 	$keyword = $pieces[0];

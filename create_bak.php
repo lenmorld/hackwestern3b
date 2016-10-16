@@ -1,39 +1,37 @@
-<?php
+<?php 
 
+$username = 'Lenny';
 include('dbconnect.php');
-print_r($_POST);
-if (isset($_POST['submit']))
+
+
+if (isset($_POST['categories']))
 {
+    // print_r($_POST['categories']);
+    $categories = array();
+    foreach ($_POST['categories'] as $check) {
+        array_push($categories, $check);
+    }
+}
+else
+{
+    $top_categories = array();
+    $conn2 = setUpConnection();
+    $sql2 = "SELECT * FROM keywords
+            ORDER BY tally DESC LIMIT 10";
+    // $sql2 = "SELECT * FROM keywords";
+    $result2 = $conn2->query($sql2);
 
-    $errormessage = "";
+    print_r($result2); 
 
-     if (isset($_POST['username']) && isset($_POST['password']))
-    {
-        $username = $_POST['username'];
-        $password = $_POST['password'];
-        
-        $conn = setUpConnection();
-
-        $sql = "SELECT username, password FROM users
-                WHERE username='" . $username ."' AND
-                        password='" .  $password . "' ";
-
-        $result = $conn->query($sql);
-
-        if ($result->num_rows > 0) {
-            header("Location: upload.php");
-
-        } else {
-            echo "0 results";
-            $errormessage = "Invalid username and/or password";
+    if ($result2->num_rows > 0) {
+         while($row = $result2->fetch_assoc()) {
+               array_push($top_categories, $row["keyword"]);
         }
-
-        $conn->close();        
-
-    }    
+    }
+    // print_r($top_categories);
+    $conn2->close(); 
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -82,7 +80,7 @@ if (isset($_POST['submit']))
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="#">Sortify</a>
+                <a class="navbar-brand" href="create.php">Sortify</a>
             </div>
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -93,6 +91,9 @@ if (isset($_POST['submit']))
 <!--                     <li>
                         <a href="#">Contact</a>
                     </li> -->
+                    <li>
+                        <a href="upload.php">Upload</a>
+                    </li>
                 </ul>
             </div>
             <!-- /.navbar-collapse -->
@@ -100,54 +101,81 @@ if (isset($_POST['submit']))
         <!-- /.container -->
     </nav>
 
-
     <!-- Header -->
     <a name="about"></a>
     <div class="main-Container">
         <div>
             <h1>Sortify</h1>
-                        <h3>Albums for Everyone</h3>
-                        <ul class="list-inline intro-social-buttons">
-                            <li>
-                            <h3><?php if (isset($errormessage)) echo $errormessage;?></h3>
-                                <form action="index.php" method="post">
-                                            
-                                                <input type="text" name="username" placeholder="username" class="btn btn-default btn-lg">
-                
-                            </li>
-                            
-                            <li>
-                                <!-- <form action="#"> -->
-                                <input type="password" name="password" placeholder="*******" class="btn btn-default btn-lg">
-                                
-                                </li>
-                            <li>
-        <!--                         <a href="#" name="submit" class="btn btn-default btn-lg"> <span class="network-name">Log in</span></a> -->
-                                       <input type="submit" name="submit" class="btn btn-default btn-lg" value="Log in">
-                            </li>
-                            </form>
-                        </ul>
-                        <p>Don't have an account? <a href="./links/signup.php"  id="g2"> Create One </a></p>
+            <h3>Albums for Everyone</h3>
             
+            <?php
+                if (isset($top_categories)) {
+
+                echo '<form action="create.php" method="post">';
+                foreach ($top_categories as  $value) {
+                echo '
+                     <div class="checkbox">
+                      <label><input type="checkbox" name="categories[]" value="' . $value .'">' . $value .'</label>
+                    </div>
+                ';
+                }
+                echo '<input type="submit" value="SUBMIT"/>
+                </form>';
+            }
+            if (isset($categories)) {
+
+                $conn2 = setUpConnection();
+                $sql2 = "SELECT category, photo FROM photos
+                         WHERE username='" . $username . "' ";
+                // $sql2 = "SELECT * FROM keywords";
+                $result2 = $conn2->query($sql2);
+                // print_r($result2);
+                $images1 = array();
+                if ($result2->num_rows > 0) {
+                     while($row = $result2->fetch_assoc()) {
+                            foreach ($categories as  $value2) {
+                                if (strpos($row["category"],  $value2)  ) {
+                                        $photo = $row["photo"] ;
+                                        $tags = $row["category"];
+                                        $images1[$value2] = $photo;
+                                        // array_push($images1, $value2 );
+                                }    
+                            }
+                           // $keyword1= $row["keyword"] ;
+                           // $tags = $row["categories"];
+                           // $images1[$keyword1] = $tags;
+                    }
+                }
+                // print_r($top_categories);
+                $conn2->close(); 
+
+
+                foreach ($images1 as $tag => $pic) {
+                   // $filename = 'uploads\' . $pic;
+
+                    echo "<h3>" . $tag ."</h3>";
+                    echo "<img src=./uploads/" . $pic ." width='300px'>";
+                }   
+            }
+            ?>
         </div>
-
-           
-                        
+        <div>
+        <?php 
+            if (isset($categories)) {
+                foreach ($categories as  $value) {
+                    echo "<button class='btn btn-primary'>" . $value . "<div>";
+                }
+            }
+        ?>
+        </div>              
     </div>
-        <!-- /.container -->
-    <!-- /.intro-header -->
-
-
 	<a  name="contact"></a>
 
     <!-- Footer -->
     <footer>
-        <div class="container">
-            
-                
+        <div class="container">      
                     <ul class="list-inline">
                         <li>
-
                             <a href="index.html">Home</a>
                         </li>
                         <li class="footer-menu-divider">&sdot;</li>

@@ -1,25 +1,20 @@
 
 <?php
 
-// print_r($_POST);
-// print_r($_FILES);
-
+print_r($_POST);
+print_r($_FILES);
 $username = 'Lenny';
-include('dbconnect.php');
 
+include('dbconnect.php');
 
 // when uploading files
 if (isset($_FILES['files']))
 {
     $target_dir = "uploads/";
-    $filenameArray = array();
-    //$JSONstrArray = array();
-    
-    foreach ($_FILES['files']['name'] as $f => $name)       // for each image
-    {
+    $JSONstrArray = array();
+    foreach ($_FILES['files']['name'] as $f => $name) {
 
         $filename = basename($name);
-
         $target_file = $target_dir . $filename;
 
         $uploadOk = 1;
@@ -28,21 +23,21 @@ if (isset($_FILES['files']))
         if(isset($_POST["submit"])) {
             $check = getimagesize($_FILES["files"]["tmp_name"][$f]);
             if($check !== false) {
-                // echo "File is an image - " . $check["mime"] . ".";
+                echo "File is an image - " . $check["mime"] . ".";
                 $uploadOk = 1;
             } else {
-                // echo "File is not an image.";
+                echo "File is not an image.";
                 $uploadOk = 0;
             }
         }
         // Check if file already exists
         if (file_exists($target_file)) {
-            // echo "Sorry, file already exists.";
+            echo "Sorry, file already exists.";
             $uploadOk = 0;
         }
         // Check file size
         if ($_FILES["files"]["size"][$f] > 50000000) {
-            // echo "Sorry, your file is too large.";
+            echo "Sorry, your file is too large.";
             $uploadOk = 0;
         }
         // Allow certain file formats
@@ -51,112 +46,54 @@ if (isset($_FILES['files']))
 
         if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg"
         && $imageFileType != "gif" ) {
-            // echo "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
+            echo "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
             $uploadOk = 0;
         }
         // Check if $uploadOk is set to 0 by an error
         if ($uploadOk == 0) {
-            // echo "Sorry, your file was not uploaded.";
+            echo "Sorry, your file was not uploaded.";
         // if everything is ok, try to upload file
         } else {
             if (move_uploaded_file($_FILES["files"]["tmp_name"][$f], $target_file)) {
-                // echo "The file ". $filename . " has been uploaded."; 
+
                 //process clarifai
 
                 // $file = 'https://samples.clarifai.com/metro-north.jpg';
-                $NGROK = 'http://e088a456.ngrok.io/photoapp';
+                $NGROK = 'http://4240e313.ngrok.io/photoapp';
                 $file = $NGROK . '/' . $target_file;
                 // $str = `python clarifai1.py $file`;
                  
-                // array_push($JSONstrArray, exec('python clarifai1.py ' . $file ));
+                array_push($JSONstrArray, exec('python clarifai1.py ' . $file ));
 
-                $JSONstr1 = exec('python clarifai1.py ' . $file );
-                $filenameArray[$filename] = $JSONstr1;
-                $keywords = explode(",", $JSONstr1);
-                $term = array();
-                $final_keywords = array();
+
+                echo "processing" . $file;
+                // echo "CLARIFAI";
+                // echo $str;
+
                 
-                foreach ($keywords as $value) {     // for every keyword-package
-                    $pieces = explode(":", $value);
-                    $keyword = $pieces[0];
-                    $keyword = str_replace(" u'", "'", $keyword);
-                    $keyword = str_replace("u'", "'", $keyword);
-                    $keyword = str_replace("'", "", $keyword);
-                    $keyword = str_replace("{", "", $keyword);
-                    $accuracy = $pieces[1];
+                // echo "The file ". basename( $_FILES["fileToUpload"]["name"]). " has been uploaded.";
+               echo "The file ". $filename . " has been uploaded.";    
 
-                    if (floatval($accuracy) > 0.97) {
-                         $term[$keyword] = $accuracy;     
-                    }
+                $conn = setUpConnection();
+                // save to DB
 
-                }   // end for every image
+                $sql = "INSERT INTO photos(photo, username)
+                        VALUES ('" . $filename ."','". $username ."')";
 
-                $keywords_string = "";
-                // echo "FINAL KEYWORDS:";
-                // print_r($term);
-                foreach ($term as $key => $value) {
-                    // echo "<input type='radio' name='" . "_x_" . $filename . "' class='btn btn-default' value=" . $key  .">" . $key;
-                    $keywords_string .= ($key . ',');
-                    // echo "KEYWORD:";
-                    // echo $keywords_string;
-
-                    //check keyword if exists, add if doesnt
-                    $conn2 = setUpConnection();
-                    $sql2 = "SELECT tally FROM keywords
-                            WHERE keyword='" . $key ."'";
-                    $result2 = $conn2->query($sql2);
-
-                    if ($result2->num_rows == 1) {      // keyword already in the database, just add to tally
-                        $row2 = $result2->fetch_assoc();
-                        $tally = $row2["tally"];
-                        // echo "keyword in DB, just add 1";
-                        $conn = setUpConnection();
-                        //save keyword starting with tally 1
-                        $sql = "UPDATE keywords SET tally=" . ($tally+1) . " WHERE keyword='" . $key . "' " ;
-
-                        if ($conn->query($sql) === TRUE) {
-                            // echo  $key . " keyword successfully";
-                        } else {
-                            // echo "Error: " . $sql . "<br>" . $conn->error;
-                        }   
-                         $conn->close();  
-                    } else {
-                        // echo "keyword not yet in DB";
-                        $conn = setUpConnection();
-                        //save keyword starting with tally 1
-                        $sql = "INSERT INTO keywords(keyword, tally)
-                                VALUES ('" . $key ."',". 1 . ")";
-
-                        if ($conn->query($sql) === TRUE) {
-                            // echo  $key . " keyword successfully";
-                        } else {
-                            // echo "Error: " . $sql . "<br>" . $conn->error;
-                        }   
-                         $conn->close();  
-                    }
-                    $conn2->close(); 
-
-                } 
-
-                // print_r($final_keywords);
-                $conn3 = setUpConnection();
-                //save image with top keywords, saved as a string
-                $sql3 = "INSERT INTO photos(photo, username, category)
-                        VALUES ('" . $filename ."','". $username ."','" . $keywords_string . "')";
-                // echo $sql3;
-                if ($conn3->query($sql3) === TRUE) {
-                    // echo "New photo added to DB successfully";
+                if ($conn->query($sql) === TRUE) {
+                    echo "New record created successfully";
                 } else {
-                    // echo "Error: " . $sql3 . "<br>" . $conn->error;
+                    echo "Error: " . $sql . "<br>" . $conn->error;
                 }
-                $conn3->close();
-                //print_r($term);
+
+                $conn->close();
 
             } else {
-                // echo "Sorry, there was an error uploading your file.";
+                echo "Sorry, there was an error uploading your file.";
             }
         }
-    } // end for each image
+    }
+
 }
 
 
@@ -203,6 +140,7 @@ if (isset($username)) {
         }
         $conn->close();  
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -248,17 +186,11 @@ if (isset($username)) {
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
                     <li>
-                        <a href="links/about.php">About</a>
+                        <a href="#">About</a>
                     </li>
-<!--                     <li>
-                        <a href="#">Contact</a>
-                    </li> -->
                     <li>
-                        <a href="create.php">Create</a>
-                    </li>
-<!--                     <li>
                         <a href="#">Contact</a>
-                    </li> -->
+                    </li>
                 </ul>
             </div>
             <!-- /.navbar-collapse -->
@@ -272,7 +204,7 @@ if (isset($username)) {
         <!-- Portfolio Item Heading -->
         <div class="row">
             <div class="col-lg-12">
-                <h1 class="page-header">Upload Photos Here
+                <h1 class="page-header">Drag and Drop Photos Here
                 </h1>
             </div>
         </div>
@@ -283,13 +215,13 @@ if (isset($username)) {
 
             <div class="col-md-8 photos-Container">
                 <!--<img class="img-responsive" src="http://placehold.it/750x500" alt="" id="upload">-->
-  <!--               <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150" class="photos" id="upload">
+                <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150" class="photos" id="upload">
                 <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150" class="photos">
                  <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150" class="photos">
                  <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150" class="photos">
                  <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150" class="photos">
                  <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150" class="photos">
-                 <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150" class="photos"> -->
+                 <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150" class="photos">
             </div>
 
             <div class="col-md-4">
@@ -310,89 +242,51 @@ if (isset($username)) {
     <input type="submit" value="Create Albums" />
 </form>            
 
-<!--                 <h3>Album Suggestions</h3>
+                <h3>Album Suggestions</h3>
                   <ul>
                     <li>Lorem Ipsum</li>
                     <li>Dolor Sit Amet</li>
                     <li>Consectetur</li>
                     <li>Adipiscing Elit</li>
                 </ul>
- -->
 
                 <?php 
+                    if (isset($JSONstrArray)) {
 
-                if (isset($filenameArray)) {
-                    echo "<h4>RAW KEYWORDS</h4>";
-                    // print_r($filenameArray); //UNCOMMENT THIS
+                        // echo $JSONstr;
+                        var_dump($JSONstrArray);
 
-                    $filename_keywords_pair = array();
-                    foreach ($filenameArray as $filen => $JSONstr1) {
-                            echo "<div class='well'>";
-                            echo "<h3>" . $filen ."</h3>";
-                                $ctr = 0;
-                                $keywords = explode(",", $JSONstr1);
-                                $term = array();
-                                foreach ($keywords as $value) {
-                                    $pieces = explode(":", $value);
-                                    $keyword = $pieces[0];
-                                    $keyword = str_replace(" u'", "'", $keyword);
-                                    $keyword = str_replace("u'", "'", $keyword);
-                                    $accuracy = $pieces[1];
-                                    $term[$keyword] = $accuracy;   
+                        $all_pics_keywords = array();
+                        $ctr = 0;
+
+                        foreach ($JSONstrArray as $JSONstr1) {
+                            $keywords = explode(",", $JSONstr1);
+                            $term = array();
+                            foreach ($keywords as $value) {
+                                $pieces = explode(":", $value);
+                                $keyword = $pieces[0];
+                                $keyword = str_replace(" u'", "'", $keyword);
+                                $keyword = str_replace("u'", "'", $keyword);
+                                $accuracy = $pieces[1];
+                                $term[$keyword] = $accuracy;   
+                            }
+                            print_r($term);
+
+
+                            $final_keywords = array();
+
+                            //do analysis of the keywords
+                            foreach ($term as $key => $value) {
+                                if (floatval($value)>0.97)      // if higher than .97 accuracy, include this
+                                {
+                                    array_push($final_keywords, $key);
                                 }
-                                //print_r($term);
-                                $final_keywords = array();
+                            }
 
-                                //do analysis of the keywords
-                                foreach ($term as $key => $value) {
-                                    if (floatval($value)>0.97)      // if higher than .97 accuracy, include this
-                                    {
-                                        array_push($final_keywords, $key);
-                                        // echo "<input type='radio' name='" . "_x_" . $filename . "' class='btn btn-default' value=" . $key  .">" . $key;
-                                    }
-                                }
-                                $filename_keywords_pair[$filen] = $final_keywords;    
-                                
-                            // echo "</div>";            
+                            $all_pics_keywords[$ctr] = $final_keywords;
+                            $ctr += 1;
+                        }   //end for each term
                     }
-
-                }
-                    // if (isset($JSONstrArray)) {
-
-                    //     // echo $JSONstr;
-                    //     var_dump($JSONstrArray);
-
-                    //     $all_pics_keywords = array();
-                    //     $ctr = 0;
-
-                    //     foreach ($JSONstrArray as $JSONstr1) {
-                    //         $keywords = explode(",", $JSONstr1);
-                    //         $term = array();
-                    //         foreach ($keywords as $value) {
-                    //             $pieces = explode(":", $value);
-                    //             $keyword = $pieces[0];
-                    //             $keyword = str_replace(" u'", "'", $keyword);
-                    //             $keyword = str_replace("u'", "'", $keyword);
-                    //             $accuracy = $pieces[1];
-                    //             $term[$keyword] = $accuracy;   
-                    //         }
-                    //         print_r($term);
-
-
-                    //         $final_keywords = array();
-
-                    //         //do analysis of the keywords
-                    //         foreach ($term as $key => $value) {
-                    //             if (floatval($value)>0.97)      // if higher than .97 accuracy, include this
-                    //             {
-                    //                 array_push($final_keywords, $key);
-                    //             }
-                    //         }
-
-                    //         $all_pics_keywords[$ctr] = $final_keywords;
-                    //         $ctr += 1;
-                    //     }   //end for each term
-                    // }
 
                 ?>
  
@@ -400,26 +294,28 @@ if (isset($username)) {
 
         </div>
         <!-- /.row -->
+
         <!-- Related Projects Row -->
 
         <?php 
-            // if (isset($all_pics_keywords)) {
-            // foreach ($all_pics_keywords as $key => $value) {
-
-            //     echo "<div class='well'>" . $key . "</div>"
+            if (isset($all_pics_keywords)) {
+            foreach ($all_pics_keywords as $key => $value) {
                 
-            //     echo "<button class='btn btn'>" . $key . print_r($value) . "</button>";
-            // }
-        // }
+                echo "<div class='well'>" . $key . print_r($value) . "</div>";
+            }
+        }
+
         ?>
 
-<!--         <div class="row albums-C">
+
+        <div class="row albums-C">
             <div class="col-lg-12">
                 <h3 class="page-header">Current Albums</h3>
             </div>
             <h2>Family</h2>
             <?php 
                 // loop through categories displaying them
+
                 $folder = 'uploads/';
             foreach ($family as $f_photo) {
                     
@@ -462,7 +358,7 @@ if (isset($username)) {
                     </a>
                 </div>';
             }
-            ?> -->
+            ?>
 
 <!-- 
             <div class="col-sm-3 col-xs-6">

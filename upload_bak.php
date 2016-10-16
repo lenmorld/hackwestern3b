@@ -283,13 +283,13 @@ if (isset($username)) {
 
             <div class="col-md-8 photos-Container">
                 <!--<img class="img-responsive" src="http://placehold.it/750x500" alt="" id="upload">-->
-  <!--               <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150" class="photos" id="upload">
+                <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150" class="photos" id="upload">
                 <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150" class="photos">
                  <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150" class="photos">
                  <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150" class="photos">
                  <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150" class="photos">
                  <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150" class="photos">
-                 <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150" class="photos"> -->
+                 <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150" class="photos">
             </div>
 
             <div class="col-md-4">
@@ -323,7 +323,7 @@ if (isset($username)) {
 
                 if (isset($filenameArray)) {
                     echo "<h4>RAW KEYWORDS</h4>";
-                    // print_r($filenameArray); //UNCOMMENT THIS
+                    print_r($filenameArray);
 
                     $filename_keywords_pair = array();
                     foreach ($filenameArray as $filen => $JSONstr1) {
@@ -413,7 +413,7 @@ if (isset($username)) {
         // }
         ?>
 
-<!--         <div class="row albums-C">
+        <div class="row albums-C">
             <div class="col-lg-12">
                 <h3 class="page-header">Current Albums</h3>
             </div>
@@ -462,7 +462,7 @@ if (isset($username)) {
                     </a>
                 </div>';
             }
-            ?> -->
+            ?>
 
 <!-- 
             <div class="col-sm-3 col-xs-6">

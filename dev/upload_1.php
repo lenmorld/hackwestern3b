@@ -80,19 +80,16 @@ else
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="create.php">Sortify</a>
+                <a class="navbar-brand" href="#">Sortify</a>
             </div>
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav navbar-right">
                     <li>
-                        <a href="links/about.php">About</a>
+                        <a href="#">About</a>
                     </li>
-<!--                     <li>
-                        <a href="#">Contact</a>
-                    </li> -->
                     <li>
-                        <a href="upload.php">Upload</a>
+                        <a href="#">Contact</a>
                     </li>
                 </ul>
             </div>
@@ -130,29 +127,27 @@ else
                 // $sql2 = "SELECT * FROM keywords";
                 $result2 = $conn2->query($sql2);
                 // print_r($result2);
-                
-                $tag_images = array();
-                $images1 = array();
+               $categs = array();
                 if ($result2->num_rows > 0) {
                      while($row = $result2->fetch_assoc()) {
-                            $photo = $row["photo"];
-                            $tags = $row["category"];
-                            $tags_pack = explode(",", $tags);
-                            foreach ($categories as  $cat) {
-                                //each category will have a set of images
-                                
-                                foreach ($tags_pack as  $t) {
-                                    if (!empty($t) && ($t == $cat)) {   //match with category and image
-                                        array_push($images1, $photo);
-                                        $tag_images[$t] = $images1;
-                                        // print_r($tag_images);
+                            foreach ($categories as  $cats) {
+                                $photo = $row["photo"] ;
+                                $keywords1 = explode(",", $row["category"]); 
+                                 $images1 = array();
+
+                                foreach ($keywords1 as  $value3) {
+                                    if (!empty($value3) && ($value3 == $cats) )
+                                    {   
+                                         // if !(in_array($photo, $images1))   
+                                            array_push($images1, $photo);  
                                     }
+                                $categs[$value3] = $images1;
                                 }
-                                // if (strpos($row["category"],  $cat)  ) {
-                                //         $photo = $row["photo"] ;
-                                //         $tags = $row["category"];
-                                //         $images1[$cat] = $photo;
-                                //         // array_push($images1, $value2 );
+                                // if (strpos($row["category"],  $value2)  ) {
+                                        // $photo = $row["photo"] ;
+                                        // $tags = $row["category"];
+                                        // $images1[$value2] = $photo;
+                                        // array_push($images1, $value2 );
                                 // }    
                             }
                            // $keyword1= $row["keyword"] ;
@@ -160,19 +155,27 @@ else
                            // $images1[$keyword1] = $tags;
                     }
                 }
-                // print_r($top_categories);
-                $conn2->close(); 
 
 
-                foreach ($tag_images as $tag => $pic_set) {
-                    echo "<h3>" . $tag ."</h3>";
-                    foreach ($pic_set as  $pic) {
-                        echo "<img src=./uploads/" . $pic ." width='300px'>";
+                // foreach ($images1 as $tag => $pic) {
+                //    // $filename = 'uploads\' . $pic;
+
+                //     echo "<h3>" . $tag ."</h3>";
+                //     echo "<img src=./uploads/" . $pic ." width='300px'>";
+                // }   
+
+                foreach ($categs as $cat => $pics) {
+                    // if (in_array($cat , $categories))
+                    // {
+                        echo "<h3>" . $cat ."</h3>";
+                    
+                    foreach ($pics as  $pic) {
+                         
+                         echo "<img src=./uploads/" . $pic ." width='300px'>";
                     }
                    // $filename = 'uploads\' . $pic;
+                // }
 
-                    
-                    
                 }   
             }
             ?>
